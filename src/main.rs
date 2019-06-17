@@ -9,6 +9,12 @@ use psutil::process::Process;
 use terminal_size::{Width, Height};
 use users::get_current_uid;
 
+const COLOR_RED: &str = "\\[\\e[1;31m\\]";
+const COLOR_GREEN: &str = "\\[\\e[1;32m\\]";
+const COLOR_BLUE: &str = "\\[\\e[1;36m\\]";
+const COLOR_YELLOW: &str = "\\[\\e[1;33m\\]";
+const COLOR_RESET: &str = "\\[\\e[0m\\]";
+
 fn terminal_size() -> (usize, usize) {
     if let Some((Width(w), Height(h))) = terminal_size::terminal_size() {
         (w.into(), h.into())
@@ -53,22 +59,22 @@ fn display_left() {
     //}
 
     let user = if uid == 0 {
-        user.bright_red().bold()
+        COLOR_RED.to_owned() + &user + COLOR_RESET
     } else {
-        user.bright_green().bold()
+        COLOR_GREEN.to_owned() + &user + COLOR_RESET
     };
 
     let host = if is_ssh() {
-        host.bright_yellow().bold()
+        COLOR_YELLOW.to_owned() + &host + COLOR_RESET
     } else {
-        host.bright_cyan().bold()
+        COLOR_BLUE.to_owned() + &host + COLOR_RESET
     };
 
     let prompt = if uid == 0 { "#" } else { "$" };
     let prompt = if env::var("ERR").unwrap_or("0".into()) != "0" {
-        prompt.bright_red().bold()
+        COLOR_RED.to_owned() + &prompt + COLOR_RESET
     } else {
-        prompt.bright_white()
+        prompt.to_owned()
     };
 
     print!("[{}@{}] {} ", user, host, prompt);
