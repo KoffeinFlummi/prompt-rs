@@ -4,7 +4,6 @@ use std::path::PathBuf;
 use colored::*;
 use gethostname::gethostname;
 use git2::{Branch, Repository};
-use psutil::getpid;
 use psutil::process::Process;
 use terminal_size::{Width, Height};
 use users::get_current_uid;
@@ -24,17 +23,20 @@ fn terminal_size() -> (usize, usize) {
 }
 
 fn is_ssh() -> bool {
-    let mut process = Process::new(getpid()).unwrap();
+    let mut process = Process::new(std::process::id()).unwrap();
     loop {
-        if process.comm.find("ssh").is_some() {
+        if process.name().unwrap().find("ssh").is_some() {
             return true;
         }
 
-        if let Ok(proc) = Process::new(process.ppid) {
-            process = proc
-        } else {
-            break;
+        if let Ok(Some(ppid)) = process.ppid() {
+            if let Ok(proc) = Process::new(ppid) {
+                process = proc;
+                continue
+            }
         }
+
+        break;
     }
 
     false
